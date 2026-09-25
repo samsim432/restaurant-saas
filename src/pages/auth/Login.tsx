@@ -1,18 +1,20 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
 import Button from "../../components/ui/Button";
+
+const API_URL = "http://127.0.0.1:8000";
 
 export default function Login() {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setError("");
 
     if (!email || !password) {
@@ -20,14 +22,44 @@ export default function Login() {
       return;
     }
 
-    // Frontend-only for now.
-    // Real authentication will be connected during the backend phase.
-    navigate("/dashboard");
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Login failed.");
+      }
+
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
+
+      navigate("/dashboard");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#FCFAF6]">
-      <header className="border-b border-[#E5E1D8] bg-[#FCFAF6]">
+      <header className="border-b border-[#E5E1D8] bg-white">
         <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6">
           <Link
             to="/"
@@ -45,55 +77,42 @@ export default function Login() {
         </div>
       </header>
 
-      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center px-6 py-16">
+      <main className="flex min-h-[calc(100vh-72px)] items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
-          <div className="text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#E4572E]">
-              RestaurantOS
+          <div className="mb-8 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-[#E4572E]">
+              Welcome back
             </p>
 
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#17211D]">
-              Welcome back
+            <h1 className="mt-3 text-3xl font-bold text-[#17211D]">
+              Sign in to RestaurantOS
             </h1>
 
-            <p className="mt-3 text-sm leading-6 text-gray-600">
-              Sign in to manage your restaurant.
+            <p className="mt-3 text-gray-600">
+              Manage your restaurant from one place.
             </p>
           </div>
 
-          <div className="mt-8 rounded-xl border border-[#E5E1D8] bg-white p-7 md:p-8">
+          <div className="rounded-xl border border-[#E5E1D8] bg-white p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
               <div>
-                <label
-                  htmlFor="email"
-                  className="text-sm font-semibold text-[#17211D]"
-                >
-                  Email address
+                <label className="mb-2 block text-sm font-semibold text-[#17211D]">
+                  Email
                 </label>
 
                 <input
-                  id="email"
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="you@example.com"
                   autoComplete="email"
-                  className="mt-2 w-full rounded-lg border border-[#E5E1D8] bg-white px-4 py-3 text-sm text-[#17211D] outline-none transition focus:border-[#E4572E]"
+                  className="w-full rounded-lg border border-[#E5E1D8] bg-white px-4 py-3 text-sm outline-none focus:border-[#E4572E]"
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="text-sm font-semibold text-[#17211D]"
-                  >
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="block text-sm font-semibold text-[#17211D]">
                     Password
                   </label>
 
@@ -106,46 +125,42 @@ export default function Login() {
                 </div>
 
                 <input
-                  id="password"
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="Your password"
                   autoComplete="current-password"
-                  className="mt-2 w-full rounded-lg border border-[#E5E1D8] bg-white px-4 py-3 text-sm text-[#17211D] outline-none transition focus:border-[#E4572E]"
+                  className="w-full rounded-lg border border-[#E5E1D8] bg-white px-4 py-3 text-sm outline-none focus:border-[#E4572E]"
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                Sign In
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
-            <div className="my-7 flex items-center gap-4">
-              <div className="h-px flex-1 bg-[#E5E1D8]" />
-
-              <span className="text-xs text-gray-400">
-                OR
-              </span>
-
-              <div className="h-px flex-1 bg-[#E5E1D8]" />
+            <div className="mt-6 border-t border-[#E5E1D8] pt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Link
+                  to="/register"
+                  className="font-semibold text-[#E4572E] hover:underline"
+                >
+                  Create one
+                </Link>
+              </p>
             </div>
-
-            <p className="text-center text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="font-semibold text-[#E4572E] hover:underline"
-              >
-                Create one
-              </Link>
-            </p>
           </div>
-
-          <p className="mt-6 text-center text-xs leading-5 text-gray-500">
-            By continuing, you agree to use RestaurantOS according to its
-            terms and policies.
-          </p>
         </div>
       </main>
     </div>

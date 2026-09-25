@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+// Marketing
 import Home from "./pages/marketing/Home";
 import Features from "./pages/marketing/Features";
 import Pricing from "./pages/marketing/Pricing";
@@ -7,10 +8,25 @@ import About from "./pages/marketing/About";
 import Contact from "./pages/marketing/Contact";
 import GetStarted from "./pages/marketing/GetStarted";
 
+// Authentication
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
+// Onboarding
+import Onboarding from "./pages/onboarding/Onboarding";
+
+// Owner pages
 import Dashboard from "./pages/owner/Dashboard";
+import Orders from "./pages/owner/Orders";
+import Tables from "./pages/owner/Tables";
+import Menu from "./pages/owner/Menu";
+import Payments from "./pages/owner/Payments";
+import Staff from "./pages/owner/Staff";
+import Reports from "./pages/owner/Reports";
+
+// Application layout
+import AppLayout from "./layouts/AppLayout";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -36,37 +52,138 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Marketing */}
-        <Route path="/" element={<Home />} />
 
-        <Route path="/features" element={<Features />} />
+        {/* =========================================
+            MARKETING
+        ========================================= */}
 
-        <Route path="/pricing" element={<Pricing />} />
+        <Route
+          path="/"
+          element={<Home />}
+        />
 
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/features"
+          element={<Features />}
+        />
 
-        <Route path="/contact" element={<Contact />} />
+        <Route
+          path="/pricing"
+          element={<Pricing />}
+        />
 
-        <Route path="/get-started" element={<GetStarted />} />
+        <Route
+          path="/about"
+          element={<About />}
+        />
 
-        {/* Authentication */}
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/contact"
+          element={<Contact />}
+        />
 
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/get-started"
+          element={<GetStarted />}
+        />
+
+        {/* =========================================
+            AUTHENTICATION
+        ========================================= */}
+
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
 
         <Route
           path="/forgot-password"
-          element={<Placeholder title="Forgot Password" />}
+          element={
+            <Placeholder title="Forgot Password" />
+          }
         />
 
-        {/* Application */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* =========================================
+            ONBOARDING
+        ========================================= */}
 
-        {/* 404 */}
+        <Route
+          path="/onboarding"
+          element={<Onboarding />}
+        />
+
+        {/* =========================================
+            OWNER APPLICATION
+        ========================================= */}
+
+        <Route
+          path="/dashboard"
+          element={<Dashboard />}
+        />
+
+        <Route
+          path="/dashboard/orders"
+          element={<Orders />}
+        />
+
+        <Route
+          path="/dashboard/tables"
+          element={<Tables />}
+        />
+
+        <Route
+          path="/dashboard/menu"
+          element={<Menu />}
+        />
+
+        <Route
+          path="/dashboard/payments"
+          element={<Payments />}
+        />
+        <Route
+    path="/dashboard/settings"
+    element={
+      <AppLayout>
+        <Placeholder title="Settings" />
+      </AppLayout>
+    }
+  />
+
+        <Route
+          path="/dashboard/staff"
+          element={<Staff />}
+        />
+
+        <Route
+          path="/dashboard/reports"
+          element={<Reports />}
+        />
+
+        <Route
+          path="/dashboard/settings"
+          element={
+            <AppLayout>
+              <Placeholder title="Settings" />
+            </AppLayout>
+          }
+        />
+
+        {/* =========================================
+            404
+        ========================================= */}
+
         <Route
           path="*"
-          element={<Placeholder title="404 — Page Not Found" />}
+          element={
+            <Placeholder title="404 — Page Not Found" />
+          }
         />
+
       </Routes>
     </BrowserRouter>
   );
