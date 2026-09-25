@@ -9,6 +9,9 @@ from app.api.routes.menu import router as menu_router
 from app.api.routes.orders import router as orders_router
 from app.api.routes.payments import router as payments_router
 from app.api.routes.staff import router as staff_router
+from app.api.routes.staff_invitations import (
+    router as staff_invitations_router,
+)
 from app.api.routes.reports import router as reports_router
 from app.api.routes.audit import router as audit_router
 
@@ -31,15 +34,37 @@ app.add_middleware(
 )
 
 
+# Authentication
 app.include_router(auth_router)
+
+# Current user
 app.include_router(me_router)
+
+# Restaurant
 app.include_router(restaurant_router)
+
+# Tables
 app.include_router(tables_router)
+
+# Menu
 app.include_router(menu_router)
+
+# Orders
 app.include_router(orders_router)
+
+# Payments
 app.include_router(payments_router)
+
+# Staff
 app.include_router(staff_router)
+
+# Staff invitations
+app.include_router(staff_invitations_router)
+
+# Reports
 app.include_router(reports_router)
+
+# Audit logs
 app.include_router(audit_router)
 
 

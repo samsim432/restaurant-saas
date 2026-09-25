@@ -1,189 +1,257 @@
+import { useEffect, useState } from "react";
 import AppLayout from "../../layouts/AppLayout";
 import Card from "../../components/ui/Card";
-
-const payments = [
-  {
-    id: "#PAY-1048",
-    order: "#1048",
-    method: "eSewa",
-    amount: 850,
-    status: "Paid",
-    time: "10:42 AM",
-  },
-  {
-    id: "#PAY-1047",
-    order: "#1047",
-    method: "Khalti",
-    amount: 1240,
-    status: "Paid",
-    time: "10:36 AM",
-  },
-  {
-    id: "#PAY-1046",
-    order: "#1046",
-    method: "Cash",
-    amount: 720,
-    status: "Pending",
-    time: "10:31 AM",
-  },
-  {
-    id: "#PAY-1045",
-    order: "#1045",
-    method: "eSewa",
-    amount: 1560,
-    status: "Paid",
-    time: "10:18 AM",
-  },
-];
+import Button from "../../components/ui/Button";
+import {
+  getPayments,
+  markCashPaid,
+  type Payment,
+} from "../../api/payments";
 
 export default function Payments() {
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [orderId, setOrderId] = useState("");
+  const [amount, setAmount] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function loadPayments() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getPayments();
+      setPayments(data);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load payments.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadPayments();
+  }, []);
+
+  async function handleCashPayment(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!orderId || !amount) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError("");
+
+      const payment = await markCashPaid({
+        order_id: Number(orderId),
+        amount: Number(amount),
+        idempotency_key: crypto.randomUUID(),
+      });
+
+      setPayments((current) => [
+        payment,
+        ...current,
+      ]);
+
+      setOrderId("");
+      setAmount("");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to mark payment.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <p className="text-sm font-semibold text-[#E4572E]">
-          Finance
-        </p>
-
-        <h1 className="mt-1 text-3xl font-bold text-[#17211D]">
-          Payments
-        </h1>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Monitor restaurant payments and payment methods.
-        </p>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Today's revenue
+      <div className="space-y-6 p-6">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-[#E4572E]">
+              Finance
             </p>
 
-            <p className="mt-2 text-2xl font-bold text-[#17211D]">
-              NPR 42,800
-            </p>
-          </Card>
+            <h1 className="mt-2 text-3xl font-bold text-[#17211D]">
+              Payments
+            </h1>
 
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Online payments
+            <p className="mt-2 text-gray-600">
+              Track payments and mark cash orders as paid.
             </p>
+          </div>
 
-            <p className="mt-2 text-2xl font-bold text-[#176B4D]">
-              NPR 31,240
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Cash payments
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-[#E4572E]">
-              NPR 11,560
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Pending
-            </p>
-
-            <p className="mt-2 text-2xl font-bold text-yellow-600">
-              NPR 720
-            </p>
-          </Card>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={loadPayments}
+          >
+            Refresh
+          </Button>
         </div>
 
-        <Card className="mt-8 overflow-hidden">
-          <div className="border-b border-[#E5E1D8] px-6 py-5">
-            <h2 className="font-semibold text-[#17211D]">
-              Recent payments
-            </h2>
-          </div>
+        {error && (
+          <Card className="border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-700">
+              {error}
+            </p>
+          </Card>
+        )}
 
-          <div className="divide-y divide-[#E5E1D8]">
-            {payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="font-semibold text-[#17211D]">
-                    {payment.id}
-                  </p>
+        <Card className="p-6">
+          <h2 className="text-lg font-bold text-[#17211D]">
+            Mark Cash Payment
+          </h2>
 
-                  <p className="mt-1 text-sm text-gray-500">
-                    Order {payment.order} · {payment.method}
-                  </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Use this when a customer pays at the counter.
+          </p>
 
-                  <p className="mt-1 text-xs text-gray-400">
-                    {payment.time}
-                  </p>
-                </div>
+          <form
+            onSubmit={handleCashPayment}
+            className="mt-5 grid gap-4 md:grid-cols-3"
+          >
+            <input
+              type="number"
+              min="1"
+              value={orderId}
+              onChange={(event) =>
+                setOrderId(event.target.value)
+              }
+              placeholder="Order ID"
+              className="rounded-lg border border-[#E5E1D8] px-4 py-3 outline-none focus:border-[#E4572E]"
+            />
 
-                <div className="flex items-center gap-5">
-                  <p className="font-bold text-[#17211D]">
-                    NPR {payment.amount.toLocaleString()}
-                  </p>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={amount}
+              onChange={(event) =>
+                setAmount(event.target.value)
+              }
+              placeholder="Amount"
+              className="rounded-lg border border-[#E5E1D8] px-4 py-3 outline-none focus:border-[#E4572E]"
+            />
 
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      payment.status === "Paid"
-                        ? "bg-green-50 text-[#176B4D]"
-                        : "bg-yellow-50 text-yellow-700"
-                    }`}
-                  >
-                    {payment.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+            <Button
+              type="submit"
+              disabled={saving}
+            >
+              {saving
+                ? "Processing..."
+                : "Mark Paid"}
+            </Button>
+          </form>
         </Card>
 
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          <Card className="p-6">
-            <p className="text-sm font-semibold text-[#17211D]">
-              eSewa
-            </p>
-
-            <p className="mt-2 text-2xl font-bold">
-              54%
-            </p>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Of online payment volume
+        {loading ? (
+          <Card className="p-10 text-center">
+            <p className="text-sm text-gray-500">
+              Loading payments...
             </p>
           </Card>
+        ) : payments.length === 0 ? (
+          <Card className="p-10 text-center">
+            <h2 className="text-lg font-bold text-[#17211D]">
+              No payments yet
+            </h2>
 
-          <Card className="p-6">
-            <p className="text-sm font-semibold text-[#17211D]">
-              Khalti
-            </p>
-
-            <p className="mt-2 text-2xl font-bold">
-              31%
-            </p>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Of online payment volume
+            <p className="mt-2 text-sm text-gray-500">
+              Completed payments will appear here.
             </p>
           </Card>
+        ) : (
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px]">
+                <thead className="border-b border-[#E5E1D8] bg-[#FCFAF6]">
+                  <tr>
+                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Payment
+                    </th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Order
+                    </th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Method
+                    </th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Amount
+                    </th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Status
+                    </th>
+                    <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Paid
+                    </th>
+                  </tr>
+                </thead>
 
-          <Card className="p-6">
-            <p className="text-sm font-semibold text-[#17211D]">
-              Cash
-            </p>
+                <tbody>
+                  {payments.map((payment) => (
+                    <tr
+                      key={payment.id}
+                      className="border-b border-[#E5E1D8] last:border-0"
+                    >
+                      <td className="px-5 py-4 font-semibold text-[#17211D]">
+                        #{payment.id}
+                      </td>
 
-            <p className="mt-2 text-2xl font-bold">
-              15%
-            </p>
+                      <td className="px-5 py-4 text-sm text-gray-600">
+                        #{payment.order_id}
+                      </td>
 
-            <p className="mt-1 text-xs text-gray-500">
-              Of today's payment volume
-            </p>
+                      <td className="px-5 py-4 text-sm capitalize text-gray-600">
+                        {payment.method}
+                      </td>
+
+                      <td className="px-5 py-4 font-semibold text-[#17211D]">
+                        NPR{" "}
+                        {Number(
+                          payment.amount,
+                        ).toLocaleString()}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            payment.status === "paid"
+                              ? "bg-green-100 text-[#176B4D]"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {payment.status}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4 text-sm text-gray-500">
+                        {payment.paid_at
+                          ? new Date(
+                              payment.paid_at,
+                            ).toLocaleString()
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Card>
-        </div>
+        )}
       </div>
     </AppLayout>
   );

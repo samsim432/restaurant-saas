@@ -11,11 +11,14 @@ import GetStarted from "./pages/marketing/GetStarted";
 // Authentication
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import VerifyEmail from "./pages/auth/VerifyEmail";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 // Onboarding
 import Onboarding from "./pages/onboarding/Onboarding";
 
-// Owner pages
+// Owner / Dashboard pages
 import Dashboard from "./pages/owner/Dashboard";
 import Orders from "./pages/owner/Orders";
 import Tables from "./pages/owner/Tables";
@@ -23,10 +26,11 @@ import Menu from "./pages/owner/Menu";
 import Payments from "./pages/owner/Payments";
 import Staff from "./pages/owner/Staff";
 import Reports from "./pages/owner/Reports";
+import Settings from "./pages/owner/Settings";
 
-// Application layout
-import AppLayout from "./layouts/AppLayout";
+// Authentication protection
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import RoleRoute from "./components/auth/RoleRoute";
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -52,138 +56,60 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* MARKETING */}
+        <Route path="/" element={<Home />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/get-started" element={<GetStarted />} />
 
-        {/* =========================================
-            MARKETING
-        ========================================= */}
+        {/* AUTHENTICATION */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-        <Route
-          path="/"
-          element={<Home />}
-        />
+        {/* ONBOARDING */}
+        <Route path="/onboarding" element={<Onboarding />} />
 
-        <Route
-          path="/features"
-          element={<Features />}
-        />
+        {/* PROTECTED DASHBOARD */}
+        <Route element={<ProtectedRoute />}>
+          {/* Everyone */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/orders" element={<Orders />} />
+          <Route path="/dashboard/tables" element={<Tables />} />
+          <Route path="/dashboard/menu" element={<Menu />} />
+          <Route path="/dashboard/payments" element={<Payments />} />
 
-        <Route
-          path="/pricing"
-          element={<Pricing />}
-        />
+          {/* Owner + Manager */}
+          <Route element={<RoleRoute allowedRoles={["owner", "manager"]} />}>
+            <Route
+              path="/dashboard/staff"
+              element={<Staff />}
+            />
 
-        <Route
-          path="/about"
-          element={<About />}
-        />
+            <Route
+              path="/dashboard/reports"
+              element={<Reports />}
+            />
+          </Route>
 
-        <Route
-          path="/contact"
-          element={<Contact />}
-        />
+          {/* Owner only */}
+          <Route element={<RoleRoute allowedRoles={["owner"]} />}>
+            <Route
+              path="/dashboard/settings"
+              element={<Settings />}
+            />
+          </Route>
+        </Route>
 
-        <Route
-          path="/get-started"
-          element={<GetStarted />}
-        />
-
-        {/* =========================================
-            AUTHENTICATION
-        ========================================= */}
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/register"
-          element={<Register />}
-        />
-
-        <Route
-          path="/forgot-password"
-          element={
-            <Placeholder title="Forgot Password" />
-          }
-        />
-
-        {/* =========================================
-            ONBOARDING
-        ========================================= */}
-
-        <Route
-          path="/onboarding"
-          element={<Onboarding />}
-        />
-
-        {/* =========================================
-            OWNER APPLICATION
-        ========================================= */}
-
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-
-        <Route
-          path="/dashboard/orders"
-          element={<Orders />}
-        />
-
-        <Route
-          path="/dashboard/tables"
-          element={<Tables />}
-        />
-
-        <Route
-          path="/dashboard/menu"
-          element={<Menu />}
-        />
-
-        <Route
-          path="/dashboard/payments"
-          element={<Payments />}
-        />
-        <Route
-    path="/dashboard/settings"
-    element={
-      <AppLayout>
-        <Placeholder title="Settings" />
-      </AppLayout>
-    }
-  />
-
-        <Route
-          path="/dashboard/staff"
-          element={<Staff />}
-        />
-
-        <Route
-          path="/dashboard/reports"
-          element={<Reports />}
-        />
-
-        <Route
-          path="/dashboard/settings"
-          element={
-            <AppLayout>
-              <Placeholder title="Settings" />
-            </AppLayout>
-          }
-        />
-
-        {/* =========================================
-            404
-        ========================================= */}
-
+        {/* 404 */}
         <Route
           path="*"
-          element={
-            <Placeholder title="404 — Page Not Found" />
-          }
+          element={<Placeholder title="404 — Page Not Found" />}
         />
-
       </Routes>
     </BrowserRouter>
   );

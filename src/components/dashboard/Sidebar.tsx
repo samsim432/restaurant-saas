@@ -1,16 +1,61 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
-const navigation = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Orders", path: "/dashboard/orders" },
-  { label: "Tables", path: "/dashboard/tables" },
-  { label: "Menu", path: "/dashboard/menu" },
-  { label: "Payments", path: "/dashboard/payments" },
-  { label: "Staff", path: "/dashboard/staff" },
-  { label: "Reports", path: "/dashboard/reports" },
+type NavigationItem = {
+  label: string;
+  path: string;
+  roles: Array<"owner" | "manager" | "staff">;
+};
+
+const navigation: NavigationItem[] = [
+  {
+    label: "Dashboard",
+    path: "/dashboard",
+    roles: ["owner", "manager", "staff"],
+  },
+  {
+    label: "Orders",
+    path: "/dashboard/orders",
+    roles: ["owner", "manager", "staff"],
+  },
+  {
+    label: "Tables",
+    path: "/dashboard/tables",
+    roles: ["owner", "manager", "staff"],
+  },
+  {
+    label: "Menu",
+    path: "/dashboard/menu",
+    roles: ["owner", "manager", "staff"],
+  },
+  {
+    label: "Payments",
+    path: "/dashboard/payments",
+    roles: ["owner", "manager", "staff"],
+  },
+  {
+    label: "Staff",
+    path: "/dashboard/staff",
+    roles: ["owner", "manager"],
+  },
+  {
+    label: "Reports",
+    path: "/dashboard/reports",
+    roles: ["owner", "manager"],
+  },
 ];
 
 export default function Sidebar() {
+  const { role, restaurantName } = useAuth();
+
+  const visibleNavigation = navigation.filter((item) => {
+    if (!role) {
+      return false;
+    }
+
+    return item.roles.includes(role);
+  });
+
   return (
     <aside className="hidden w-64 shrink-0 border-r border-[#E5E1D8] bg-white lg:flex lg:flex-col">
       <div className="flex h-[72px] items-center border-b border-[#E5E1D8] px-6">
@@ -29,17 +74,17 @@ export default function Sidebar() {
           </p>
 
           <p className="mt-1 truncate text-sm font-semibold text-[#17211D]">
-            Kathmandu Kitchen
+            {restaurantName || "Restaurant"}
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">
-            Kathmandu, Nepal
+          <p className="mt-1 text-xs capitalize text-gray-500">
+            {role || "User"}
           </p>
         </div>
       </div>
 
       <nav className="flex-1 space-y-1 p-4">
-        {navigation.map((item) => (
+        {visibleNavigation.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
@@ -57,20 +102,22 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-[#E5E1D8] p-4">
-        <NavLink
-          to="/dashboard/settings"
-          className={({ isActive }) =>
-            `block rounded-lg px-4 py-3 text-sm font-medium ${
-              isActive
-                ? "bg-[#FFF0EB] text-[#E4572E]"
-                : "text-gray-600 hover:bg-[#F7F5F0] hover:text-[#17211D]"
-            }`
-          }
-        >
-          Settings
-        </NavLink>
-      </div>
+      {role === "owner" && (
+        <div className="border-t border-[#E5E1D8] p-4">
+          <NavLink
+            to="/dashboard/settings"
+            className={({ isActive }) =>
+              `block rounded-lg px-4 py-3 text-sm font-medium ${
+                isActive
+                  ? "bg-[#FFF0EB] text-[#E4572E]"
+                  : "text-gray-600 hover:bg-[#F7F5F0] hover:text-[#17211D]"
+              }`
+            }
+          >
+            Settings
+          </NavLink>
+        </div>
+      )}
     </aside>
   );
 }

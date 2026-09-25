@@ -1,245 +1,180 @@
+import { useEffect, useState } from "react";
 import AppLayout from "../../layouts/AppLayout";
 import Card from "../../components/ui/Card";
-
-const dailySales = [
-  { day: "Mon", amount: 32400 },
-  { day: "Tue", amount: 38200 },
-  { day: "Wed", amount: 35600 },
-  { day: "Thu", amount: 42100 },
-  { day: "Fri", amount: 46800 },
-  { day: "Sat", amount: 52400 },
-  { day: "Sun", amount: 42800 },
-];
-
-const topItems = [
-  {
-    name: "Chicken Momo",
-    orders: 84,
-    revenue: 15120,
-  },
-  {
-    name: "Thakali Set",
-    orders: 62,
-    revenue: 27900,
-  },
-  {
-    name: "Chicken Chowmein",
-    orders: 51,
-    revenue: 11220,
-  },
-  {
-    name: "Buff Momo",
-    orders: 48,
-    revenue: 7680,
-  },
-];
+import Button from "../../components/ui/Button";
+import {
+  getReportSummary,
+  type ReportSummary,
+} from "../../api/reports";
 
 export default function Reports() {
+  const [report, setReport] =
+    useState<ReportSummary | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  async function loadReport() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getReportSummary();
+      setReport(data);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load reports.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadReport();
+  }, []);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <p className="text-sm text-gray-500">
+            Loading reports...
+          </p>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <p className="text-sm font-semibold text-[#E4572E]">
-          Analytics
-        </p>
-
-        <h1 className="mt-1 text-3xl font-bold text-[#17211D]">
-          Reports
-        </h1>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Understand sales, orders and menu performance.
-        </p>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Weekly revenue
+      <div className="space-y-6 p-6">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wider text-[#E4572E]">
+              Analytics
             </p>
 
-            <p className="mt-2 text-2xl font-bold">
-              NPR 290,300
+            <h1 className="mt-2 text-3xl font-bold text-[#17211D]">
+              Reports
+            </h1>
+
+            <p className="mt-2 text-gray-600">
+              Restaurant performance from your real order data.
             </p>
-
-            <p className="mt-2 text-xs text-[#176B4D]">
-              +14.8% vs previous week
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Orders
-            </p>
-
-            <p className="mt-2 text-2xl font-bold">
-              864
-            </p>
-
-            <p className="mt-2 text-xs text-[#176B4D]">
-              +9.2% vs previous week
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Average order
-            </p>
-
-            <p className="mt-2 text-2xl font-bold">
-              NPR 336
-            </p>
-
-            <p className="mt-2 text-xs text-[#176B4D]">
-              +3.1% vs previous week
-            </p>
-          </Card>
-
-          <Card className="p-5">
-            <p className="text-sm text-gray-500">
-              Customers
-            </p>
-
-            <p className="mt-2 text-2xl font-bold">
-              712
-            </p>
-
-            <p className="mt-2 text-xs text-[#176B4D]">
-              +11.4% vs previous week
-            </p>
-          </Card>
-        </div>
-
-        <div className="mt-8 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-          <Card className="p-6">
-            <div>
-              <h2 className="font-semibold text-[#17211D]">
-                Daily revenue
-              </h2>
-
-              <p className="mt-1 text-xs text-gray-500">
-                Revenue for the current week
-              </p>
-            </div>
-
-            <div className="mt-8 flex h-64 items-end gap-3">
-              {dailySales.map((item) => {
-                const height =
-                  (item.amount / 60000) * 100;
-
-                return (
-                  <div
-                    key={item.day}
-                    className="flex h-full flex-1 flex-col items-center justify-end gap-2"
-                  >
-                    <div className="text-xs font-semibold text-gray-500">
-                      {(item.amount / 1000).toFixed(0)}k
-                    </div>
-
-                    <div
-                      className="w-full max-w-10 rounded-t-lg bg-[#E4572E]"
-                      style={{
-                        height: `${height}%`,
-                      }}
-                    />
-
-                    <div className="text-xs text-gray-500">
-                      {item.day}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="font-semibold text-[#17211D]">
-              Top menu items
-            </h2>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Based on orders this week
-            </p>
-
-            <div className="mt-6 space-y-5">
-              {topItems.map((item, index) => (
-                <div key={item.name}>
-                  <div className="flex justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-[#17211D]">
-                        {index + 1}. {item.name}
-                      </p>
-
-                      <p className="mt-1 text-xs text-gray-500">
-                        {item.orders} orders
-                      </p>
-                    </div>
-
-                    <p className="text-sm font-semibold">
-                      NPR {item.revenue.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        <Card className="mt-8 overflow-hidden">
-          <div className="border-b border-[#E5E1D8] px-6 py-5">
-            <h2 className="font-semibold text-[#17211D]">
-              Payment breakdown
-            </h2>
           </div>
 
-          <div className="grid gap-5 p-6 md:grid-cols-3">
-            <div>
-              <p className="text-sm text-gray-500">
-                eSewa
-              </p>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={loadReport}
+          >
+            Refresh
+          </Button>
+        </div>
 
-              <p className="mt-2 text-xl font-bold">
-                NPR 98,450
-              </p>
+        {error && (
+          <Card className="border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-medium text-red-700">
+              {error}
+            </p>
+          </Card>
+        )}
 
-              <div className="mt-3 h-2 rounded-full bg-[#F7F5F0]">
-                <div
-                  className="h-2 rounded-full bg-[#176B4D]"
-                  style={{ width: "58%" }}
-                />
-              </div>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="p-6">
+            <p className="text-sm font-medium text-gray-500">
+              Total Orders
+            </p>
+
+            <p className="mt-3 text-3xl font-bold text-[#17211D]">
+              {report?.total_orders ?? 0}
+            </p>
+          </Card>
+
+          <Card className="p-6">
+            <p className="text-sm font-medium text-gray-500">
+              Paid Revenue
+            </p>
+
+            <p className="mt-3 text-3xl font-bold text-[#176B4D]">
+              NPR{" "}
+              {Number(
+                report?.paid_revenue ?? 0,
+              ).toLocaleString()}
+            </p>
+          </Card>
+
+          <Card className="p-6">
+            <p className="text-sm font-medium text-gray-500">
+              Completed Orders
+            </p>
+
+            <p className="mt-3 text-3xl font-bold text-[#17211D]">
+              {report?.completed_orders ?? 0}
+            </p>
+          </Card>
+
+          <Card className="p-6">
+            <p className="text-sm font-medium text-gray-500">
+              Average Order
+            </p>
+
+            <p className="mt-3 text-3xl font-bold text-[#17211D]">
+              NPR{" "}
+              {Number(
+                report?.average_order ?? 0,
+              ).toLocaleString()}
+            </p>
+          </Card>
+        </div>
+
+        <Card className="p-8">
+          <h2 className="text-xl font-bold text-[#17211D]">
+            Current Performance
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-gray-600">
+            These numbers are calculated by the RestaurantOS
+            backend from your restaurant's orders and payments.
+          </p>
+
+          <div className="mt-6 rounded-lg bg-[#FCFAF6] p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-600">
+                Order completion
+              </span>
+
+              <span className="font-bold text-[#17211D]">
+                {report?.total_orders
+                  ? Math.round(
+                      (report.completed_orders /
+                        report.total_orders) *
+                        100,
+                    )
+                  : 0}
+                %
+              </span>
             </div>
 
-            <div>
-              <p className="text-sm text-gray-500">
-                Khalti
-              </p>
-
-              <p className="mt-2 text-xl font-bold">
-                NPR 54,220
-              </p>
-
-              <div className="mt-3 h-2 rounded-full bg-[#F7F5F0]">
-                <div
-                  className="h-2 rounded-full bg-[#E4572E]"
-                  style={{ width: "32%" }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                Cash
-              </p>
-
-              <p className="mt-2 text-xl font-bold">
-                NPR 38,630
-              </p>
-
-              <div className="mt-3 h-2 rounded-full bg-[#F7F5F0]">
-                <div
-                  className="h-2 rounded-full bg-[#F2B84B]"
-                  style={{ width: "23%" }}
-                />
-              </div>
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#E5E1D8]">
+              <div
+                className="h-full rounded-full bg-[#176B4D]"
+                style={{
+                  width: `${
+                    report?.total_orders
+                      ? Math.min(
+                          100,
+                          (report.completed_orders /
+                            report.total_orders) *
+                            100,
+                        )
+                      : 0
+                  }%`,
+                }}
+              />
             </div>
           </div>
         </Card>

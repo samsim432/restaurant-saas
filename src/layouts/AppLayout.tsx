@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-
 import Sidebar from "../components/dashboard/Sidebar";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 

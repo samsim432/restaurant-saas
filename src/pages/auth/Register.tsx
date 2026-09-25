@@ -1,8 +1,12 @@
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/ui/Button";
 
 const API_URL = "http://127.0.0.1:8000";
+
+interface RegisterResponse {
+  message: string;
+}
 
 export default function Register() {
   const navigate = useNavigate();
@@ -53,16 +57,22 @@ export default function Register() {
         }),
       });
 
-      const data = await response.json();
+      const data: RegisterResponse | { detail?: string } =
+        await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || "Registration failed.");
+        throw new Error(
+          "detail" in data && data.detail
+            ? data.detail
+            : "Registration failed.",
+        );
       }
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("refresh_token", data.refresh_token);
-
-      navigate("/dashboard");
+      navigate("/verify-email", {
+        state: {
+          email,
+        },
+      });
     } catch (err) {
       setError(
         err instanceof Error
@@ -108,7 +118,8 @@ export default function Register() {
           </h1>
 
           <p className="mt-3 text-gray-600">
-            Set up your RestaurantOS account and start managing your restaurant.
+            Set up your RestaurantOS account and start managing your
+            restaurant.
           </p>
         </div>
 

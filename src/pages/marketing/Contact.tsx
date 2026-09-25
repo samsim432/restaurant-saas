@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import MarketingLayout from "../../components/layout/MarketingLayout";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
